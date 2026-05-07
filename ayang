@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Nunito:wght@400;600;700&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:transparent;font-family:'Nunito',sans-serif}
+
+  .scene{
+    min-height:600px;
+    background:linear-gradient(160deg,#fff0f6 0%,#fff9ee 50%,#f0f4ff 100%);
+    border-radius:24px;
+    overflow:hidden;
+    position:relative;
+    padding:0;
+  }
+
+  /* Floating petals */
+  .petal{position:absolute;font-size:18px;pointer-events:none;animation:petFall linear infinite;}
+  @keyframes petFall{0%{transform:translateY(-60px) rotate(0deg);opacity:0.8}100%{transform:translateY(660px) rotate(360deg);opacity:0}}
+
+  /* Photo upload area */
+  .photo-zone{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:28px 20px 0;
+    gap:16px;
+    position:relative;
+    z-index:2;
+  }
+  .photo-frame{
+    width:130px;height:150px;
+    border-radius:18px;
+    border:3px dashed #ffb3d1;
+    background:rgba(255,255,255,0.7);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+    transition:border-color 0.2s,transform 0.2s;
+    box-shadow:0 4px 20px rgba(255,100,150,0.12);
+  }
+  .photo-frame:hover{border-color:#ff6fa3;transform:scale(1.03)}
+  .photo-frame img{width:100%;height:100%;object-fit:cover;border-radius:15px;position:absolute;top:0;left:0}
+  .photo-frame .ph-label{font-size:11px;color:#ff9abf;font-weight:600;margin-top:6px;text-align:center;z-index:1}
+  .photo-frame .ph-icon{font-size:30px;z-index:1}
+  .photo-frame input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:5}
+
+  .heart-connector{
+    font-size:28px;
+    animation:pulse 1.2s ease-in-out infinite;
+    align-self:center;
+  }
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+
+  /* Main card content */
+  .card-body{
+    text-align:center;
+    padding:18px 24px 28px;
+    position:relative;
+    z-index:2;
+  }
+
+  .title-tag{
+    display:inline-block;
+    background:linear-gradient(90deg,#ff6fa3,#ff9f6a);
+    color:white;
+    font-size:12px;font-weight:700;
+    padding:4px 16px;border-radius:50px;
+    letter-spacing:1px;
+    margin-bottom:10px;
+  }
+
+  .big-title{
+    font-family:'Playfair Display',serif;
+    font-size:30px;font-weight:700;
+    color:#d63e7a;
+    line-height:1.2;
+    margin-bottom:6px;
+  }
+
+  .subtitle{
+    font-size:13px;color:#a0788e;font-style:italic;
+    margin-bottom:18px;
+  }
+
+  /* Message display */
+  .msg-box{
+    background:rgba(255,255,255,0.85);
+    border:1.5px solid #ffd0e4;
+    border-radius:18px;
+    padding:16px 20px;
+    min-height:80px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .msg-text{
+    font-family:'Playfair Display',serif;
+    font-size:20px;
+    color:#c23d77;
+    font-style:italic;
+    line-height:1.4;
+    transition:all 0.4s ease;
+  }
+  .msg-indicator{
+    position:absolute;bottom:8px;right:12px;
+    font-size:11px;color:#e8a0bf;font-weight:600;
+  }
+
+  /* Navigation */
+  .nav-row{
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    margin-bottom:16px;
+  }
+  .nav-btn{
+    border:none;
+    width:44px;height:44px;border-radius:50%;
+    font-size:18px;cursor:pointer;
+    transition:transform 0.15s,background 0.15s;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .nav-btn.prev{background:#ffeaf2;color:#ff6fa3;}
+  .nav-btn.next{background:linear-gradient(135deg,#ff6fa3,#ff9f6a);color:white;box-shadow:0 4px 14px rgba(255,111,163,0.4);}
+  .nav-btn:hover{transform:scale(1.1)}
+  .nav-btn.next:active{transform:scale(0.95)}
+
+  .dots{display:flex;gap:6px;align-items:center;}
+  .dot{width:7px;height:7px;border-radius:50%;background:#ffd0e4;transition:all 0.3s;}
+  .dot.active{background:#ff6fa3;transform:scale(1.3);}
+
+  /* Special message box */
+  .special-frame{
+    background:linear-gradient(135deg,#fff0f6,#fff9ee);
+    border:1.5px solid #ffd0e4;
+    border-radius:20px;
+    padding:12px 16px;
+    margin-bottom:12px;
+    text-align:left;
+    display:none;
+  }
+  .special-frame.show{display:block}
+  .special-lbl{font-size:11px;color:#e8a0bf;font-weight:700;letter-spacing:0.8px;margin-bottom:4px;}
+  .special-input{
+    width:100%;border:none;background:transparent;
+    font-family:'Playfair Display',serif;font-style:italic;
+    font-size:15px;color:#c23d77;resize:none;outline:none;
+    min-height:50px;line-height:1.5;
+  }
+  .special-input::placeholder{color:#e8b4cc}
+
+  .tools-row{
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+  }
+  .tool-btn{
+    border:1.5px solid #ffd0e4;background:rgba(255,255,255,0.8);
+    color:#d63e7a;font-size:12px;font-weight:700;
+    padding:7px 14px;border-radius:50px;cursor:pointer;
+    transition:all 0.2s;
+    display:flex;align-items:center;gap:4px;
+  }
+  .tool-btn:hover{background:#ff6fa3;color:white;border-color:#ff6fa3;transform:scale(1.05)}
+
+  /* Konfeti burst */
+  .konfeti{position:absolute;pointer-events:none;font-size:16px;animation:konfetiBurst 1.2s ease-out forwards;}
+  @keyframes konfetiBurst{
+    0%{transform:translate(0,0) scale(1);opacity:1}
+    100%{transform:translate(var(--dx),var(--dy)) scale(0.3);opacity:0}
+  }
+
+  /* Glitter effect */
+  .glitter{position:absolute;pointer-events:none;font-size:12px;animation:glitterFade 1s ease-out forwards;}
+  @keyframes glitterFade{
+    0%{transform:scale(0) rotate(0deg);opacity:1}
+    50%{transform:scale(1.2) rotate(180deg);opacity:0.8}
+    100%{transform:scale(0.3) rotate(360deg);opacity:0}
+  }
+
+  /* Polaroid style if both photos */
+  .polaroid-wrap{
+    display:flex;justify-content:center;gap:10px;margin-bottom:4px;
+  }
+  .polaroid{
+    background:white;
+    padding:6px 6px 24px;
+    border-radius:4px;
+    box-shadow:0 4px 18px rgba(0,0,0,0.12);
+    transform:rotate(-3deg);
+    transition:transform 0.3s;
+    position:relative;
+  }
+  .polaroid:nth-child(2){transform:rotate(2.5deg)}
+  .polaroid:hover{transform:scale(1.05) rotate(0deg)!important;z-index:10}
+  .polaroid img{width:120px;height:140px;object-fit:cover;border-radius:2px;display:block;}
+  .polaroid .pol-label{
+    position:absolute;bottom:5px;left:0;right:0;
+    text-align:center;font-family:'Playfair Display',serif;
+    font-style:italic;font-size:10px;color:#aaa;
+  }
+
+  /* Tanpa foto */
+  .photo-placeholder{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+<h2 class="sr-only" style="position:absolute;left:-9999px">Kartu ulang tahun interaktif dengan upload foto</h2>
+<div class="scene" id="scene">
+
+  <!-- Petals (generated by JS) -->
+  <div id="petals"></div>
+
+  <!-- Photo upload zone -->
+  <div class="photo-zone" id="photoZone">
+    <!-- Photo 1: Kamu -->
+    <div class="photo-frame" id="frame1" title="Upload foto kamu">
+      <input type="file" accept="image/*" onchange="loadPhoto(event,'img1','frame1')" />
+      <div class="photo-placeholder" id="ph1">
+        <div class="ph-icon">🧑</div>
+        <div class="ph-label">Foto Kamu</div>
+      </div>
+      <img id="img1" src="" style="display:none"/>
+    </div>
+
+    <div class="heart-connector">💖</div>
+
+    <!-- Photo 2: Ayang -->
+    <div class="photo-frame" id="frame2" title="Upload foto ayang">
+      <input type="file" accept="image/*" onchange="loadPhoto(event,'img2','frame2')" />
+      <div class="photo-placeholder" id="ph2">
+        <div class="ph-icon">👧</div>
+        <div class="ph-label">Foto Ayang</div>
+      </div>
+      <img id="img2" src="" style="display:none"/>
+    </div>
+  </div>
+
+  <!-- Card body -->
+  <div class="card-body">
+    <div class="title-tag">✨ HAPPY BIRTHDAY ✨</div>
+    <div class="big-title" id="mainTitle">Selamat Ulang Tahun,<br>Ayang 🎂</div>
+    <div class="subtitle" id="subDate">– 22 tahun yang indah –</div>
+
+    <!-- Message box -->
+    <div class="msg-box">
+      <div class="msg-text" id="msgText">pencet tombolnya ayanggg 🥺</div>
+      <div class="msg-indicator" id="msgIndicator">0 / 9</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="nav-btn prev" onclick="prevMsg()">◀</button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn next" onclick="nextMsg()">ketuk ▶</button>
+    </div>
+
+    <!-- Special message input -->
+    <div class="special-frame" id="specialFrame">
+      <div class="special-lbl">💌 PESAN SPESIAL</div>
+      <textarea class="special-input" id="specialInput" placeholder="Tulis sesuatu yang dari hati buat ayang..." rows="2"></textarea>
+    </div>
+
+    <!-- Tools -->
+    <div class="tools-row">
+      <button class="tool-btn" onclick="toggleSpecial()">💌 Pesan Spesial</button>
+      <button class="tool-btn" onclick="burstKonfeti()">🎉 Perayaan!</button>
+      <button class="tool-btn" onclick="editName()">✏️ Ganti Nama</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const messages = [
+  "selamat ulang tahun ayang 💖",
+  "yeay ayang skrg udah 22 taun! 🎂",
+  "semoga makin cimil 😚",
+  "makin cantik & bersinar ✨",
+  "sukses selalu, ya sayang 💪",
+  "punya peter, nakan, kebun 🌴",
+  "jadi ratu sawit 👑😎",
+  "mwah mwah dari jauh 😘",
+  "i love you ayang, selalu ❤️"
+];
+
+let idx = 0;
+let specialOpen = false;
+
+const emojis = ['🌸','🌺','🌷','💐','🍀','⭐','✨','🦋','🌙','💫'];
+
+// Generate falling petals
+function genPetals(){
+  const c = document.getElementById('petals');
+  for(let i=0;i<15;i++){
+    const d = document.createElement('div');
+    d.className='petal';
+    d.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    d.style.left = (Math.random()*100)+'vw';
+    d.style.animationDuration = (Math.random()*5+4)+'s';
+    d.style.animationDelay = (Math.random()*8)+'s';
+    d.style.fontSize = (Math.random()*12+12)+'px';
+    d.style.opacity = (Math.random()*0.5+0.4);
+    c.appendChild(d);
+  }
+}
+genPetals();
+
+// Build dots
+function buildDots(){
+  const c = document.getElementById('dots');
+  c.innerHTML='';
+  messages.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className='dot'+(i===idx?' active':'');
+    d.onclick=()=>{goTo(i)};
+    d.style.cursor='pointer';
+    c.appendChild(d);
+  });
+}
+buildDots();
+
+function updateMsg(anim=true){
+  const el = document.getElementById('msgText');
+  if(anim){el.style.opacity=0;el.style.transform='scale(0.9)'}
+  setTimeout(()=>{
+    el.textContent = messages[idx];
+    el.style.opacity=1;el.style.transform='scale(1)';
+    document.getElementById('msgIndicator').textContent = (idx+1)+' / '+messages.length;
+    buildDots();
+  },anim?180:0);
+  spawnGlitter();
+}
+
+function nextMsg(){
+  idx = (idx+1)%messages.length;
+  updateMsg();
+}
+function prevMsg(){
+  idx = (idx-1+messages.length)%messages.length;
+  updateMsg();
+}
+function goTo(i){idx=i;updateMsg();}
+
+function spawnGlitter(){
+  const scene = document.getElementById('scene');
+  const sparks=['✨','💫','⭐','🌟','💖'];
+  for(let i=0;i<5;i++){
+    const g=document.createElement('div');
+    g.className='glitter';
+    g.textContent=sparks[Math.floor(Math.random()*sparks.length)];
+    const x=30+Math.random()*60;
+    const y=30+Math.random()*50;
+    g.style.left=x+'%';
+    g.style.top=y+'%';
+    g.style.fontSize=(10+Math.random()*8)+'px';
+    scene.appendChild(g);
+    setTimeout(()=>g.remove(),1100);
+  }
+}
+
+function burstKonfeti(){
+  const scene = document.getElementById('scene');
+  const items=['🎉','🎊','🎈','🎁','💝','🌟','✨','🎂','🍰','💖','🥳','🎀'];
+  const cx=50;const cy=60;
+  for(let i=0;i<22;i++){
+    const k=document.createElement('div');
+    k.className='konfeti';
+    const angle=Math.random()*Math.PI*2;
+    const dist=80+Math.random()*100;
+    k.style.setProperty('--dx',(Math.cos(angle)*dist)+'px');
+    k.style.setProperty('--dy',(Math.sin(angle)*dist)+'px');
+    k.textContent=items[Math.floor(Math.random()*items.length)];
+    k.style.left=cx+'%';k.style.top=cy+'%';
+    k.style.fontSize=(14+Math.random()*14)+'px';
+    k.style.animationDelay=(Math.random()*0.3)+'s';
+    scene.appendChild(k);
+    setTimeout(()=>k.remove(),1500);
+  }
+}
+
+function toggleSpecial(){
+  specialOpen=!specialOpen;
+  document.getElementById('specialFrame').className='special-frame'+(specialOpen?' show':'');
+  if(specialOpen) document.getElementById('specialInput').focus();
+}
+
+function editName(){
+  const name = prompt('Nama ayang kamu siapa? 💖','Ayang');
+  if(name){
+    document.getElementById('mainTitle').innerHTML='Selamat Ulang Tahun,<br>'+name+' 🎂';
+  }
+}
+
+function loadPhoto(e, imgId, frameId){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    const img = document.getElementById(imgId);
+    img.src = ev.target.result;
+    img.style.display='block';
+    // Hide placeholder
+    const ph = frameId==='frame1'?document.getElementById('ph1'):document.getElementById('ph2');
+    ph.style.display='none';
+    // Remove dashed border
+    document.getElementById(frameId).style.border='3px solid #ff6fa3';
+    spawnGlitter();
+    burstKonfeti();
+    checkPolaroid();
+  };
+  reader.readAsDataURL(file);
+}
+
+function checkPolaroid(){
+  const i1=document.getElementById('img1').src;
+  const i2=document.getElementById('img2').src;
+  // Kedua foto sudah ada → polaroid mode
+  if(i1 && i1!==window.location.href && i2 && i2!==window.location.href){
+    const zone = document.getElementById('photoZone');
+    zone.innerHTML = `
+      <div class="polaroid-wrap">
+        <div class="polaroid">
+          <img src="${i1}"/>
+          <div class="pol-label">kamu 💛</div>
+        </div>
+        <div class="polaroid">
+          <img src="${i2}"/>
+          <div class="pol-label">ayang 💖</div>
+        </div>
+      </div>`;
+    burstKonfeti();
+  }
+}
+
+// Auto spawn glitter every few seconds
+setInterval(()=>{
+  const scene=document.getElementById('scene');
+  const g=document.createElement('div');
+  g.className='glitter';
+  const sp=['✨','💫','🌸'];
+  g.textContent=sp[Math.floor(Math.random()*sp.length)];
+  g.style.left=(Math.random()*90)+'%';
+  g.style.top=(Math.random()*80)+'%';
+  g.style.fontSize='14px';
+  scene.appendChild(g);
+  setTimeout(()=>g.remove(),1100);
+},900);
+</script>
+</body>
+</html>
